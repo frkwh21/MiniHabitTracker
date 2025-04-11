@@ -116,7 +116,7 @@
             vertical-align: middle;
             padding: 0.5rem;
             position: relative;
-            height: 70px;
+            height: 120px; /* 高さを増やす */
         }
         
         td.today {
@@ -135,11 +135,47 @@
             color: #4c566a;
         }
         
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding-top: 15px;
+        }
+        
+        .daily-goal {
+            width: 100%;
+            font-size: 0.75rem;
+            padding: 2px;
+            margin-bottom: 5px;
+            border: 1px solid #d8dee9;
+            border-radius: 3px;
+        }
+        
+        .result-options {
+            display: flex;
+            justify-content: center;
+            margin-top: 4px;
+            font-size: 0.7rem;
+        }
+        
+        .result-option {
+            margin: 0 3px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-option input[type="radio"] {
+            margin-right: 2px;
+            cursor: pointer;
+        }
+        
         .check-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100%;
+            height: 30px;
+            margin-top: 2px;
         }
         
         input[type="checkbox"] {
@@ -269,6 +305,8 @@
         let state = {
             habitName: DEFAULT_HABIT_NAME,
             completedDates: {},
+            dailyGoals: {},          // 日ごとの目標
+            dailyResults: {},        // 日ごとの結果（できた/できなかった）
             currentMonth: new Date().getMonth(),
             currentYear: new Date().getFullYear()
         };
@@ -291,7 +329,9 @@
                     state = {
                         ...state,
                         habitName: parsedData.habitName || DEFAULT_HABIT_NAME,
-                        completedDates: parsedData.completedDates || {}
+                        completedDates: parsedData.completedDates || {},
+                        dailyGoals: parsedData.dailyGoals || {},
+                        dailyResults: parsedData.dailyResults || {}
                     };
                     habitNameInput.value = state.habitName;
                 }
@@ -306,7 +346,9 @@
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
                     habitName: state.habitName,
-                    completedDates: state.completedDates
+                    completedDates: state.completedDates,
+                    dailyGoals: state.dailyGoals,
+                    dailyResults: state.dailyResults
                 }));
             } catch (error) {
                 console.error("Failed to save data to localStorage:", error);
