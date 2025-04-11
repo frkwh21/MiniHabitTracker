@@ -230,7 +230,16 @@
             }
             
             td {
-                height: 60px;
+                height: 110px;
+            }
+            
+            .daily-goal {
+                font-size: 0.65rem;
+                padding: 1px;
+            }
+            
+            .result-options {
+                font-size: 0.65rem;
             }
             
             .habit-form input, .habit-form button {
@@ -406,6 +415,80 @@
                         dateNumber.textContent = date;
                         cell.appendChild(dateNumber);
                         
+                        // Create cell content container
+                        const cellContent = document.createElement('div');
+                        cellContent.classList.add('cell-content');
+                        
+                        // Create daily goal input
+                        const dailyGoalInput = document.createElement('input');
+                        dailyGoalInput.type = 'text';
+                        dailyGoalInput.classList.add('daily-goal');
+                        dailyGoalInput.placeholder = '目標';
+                        
+                        // Generate date key
+                        const dateKey = `${state.currentYear}-${state.currentMonth + 1}-${date}`;
+                        
+                        // Set daily goal value if exists
+                        if (state.dailyGoals[dateKey]) {
+                            dailyGoalInput.value = state.dailyGoals[dateKey];
+                        }
+                        
+                        // Add event listener to daily goal input
+                        dailyGoalInput.dataset.date = dateKey;
+                        dailyGoalInput.addEventListener('change', handleDailyGoalChange);
+                        
+                        // Create result options container
+                        const resultOptions = document.createElement('div');
+                        resultOptions.classList.add('result-options');
+                        
+                        // Create "できた" option
+                        const successOption = document.createElement('div');
+                        successOption.classList.add('result-option');
+                        
+                        const successRadio = document.createElement('input');
+                        successRadio.type = 'radio';
+                        successRadio.name = `result-${dateKey}`;
+                        successRadio.value = 'success';
+                        successRadio.dataset.date = dateKey;
+                        if (state.dailyResults[dateKey] === 'success') {
+                            successRadio.checked = true;
+                        }
+                        successRadio.addEventListener('change', handleResultChange);
+                        
+                        const successLabel = document.createElement('label');
+                        successLabel.textContent = 'できた';
+                        
+                        successOption.appendChild(successRadio);
+                        successOption.appendChild(successLabel);
+                        
+                        // Create "できなかった" option
+                        const failOption = document.createElement('div');
+                        failOption.classList.add('result-option');
+                        
+                        const failRadio = document.createElement('input');
+                        failRadio.type = 'radio';
+                        failRadio.name = `result-${dateKey}`;
+                        failRadio.value = 'fail';
+                        failRadio.dataset.date = dateKey;
+                        if (state.dailyResults[dateKey] === 'fail') {
+                            failRadio.checked = true;
+                        }
+                        failRadio.addEventListener('change', handleResultChange);
+                        
+                        const failLabel = document.createElement('label');
+                        failLabel.textContent = 'できなかった';
+                        
+                        failOption.appendChild(failRadio);
+                        failOption.appendChild(failLabel);
+                        
+                        // Add options to container
+                        resultOptions.appendChild(successOption);
+                        resultOptions.appendChild(failOption);
+                        
+                        // Add daily goal and result options to cell content
+                        cellContent.appendChild(dailyGoalInput);
+                        cellContent.appendChild(resultOptions);
+                        
                         // Create checkbox container
                         const checkContainer = document.createElement('div');
                         checkContainer.classList.add('check-container');
@@ -413,10 +496,9 @@
                         // Create checkbox
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
-                        checkbox.dataset.date = `${state.currentYear}-${state.currentMonth + 1}-${date}`;
+                        checkbox.dataset.date = dateKey;
                         
                         // Check if this date is completed
-                        const dateKey = `${state.currentYear}-${state.currentMonth + 1}-${date}`;
                         if (state.completedDates[dateKey]) {
                             checkbox.checked = true;
                         }
@@ -430,7 +512,9 @@
                         checkbox.addEventListener('change', handleCheckboxChange);
                         
                         checkContainer.appendChild(checkbox);
-                        cell.appendChild(checkContainer);
+                        cellContent.appendChild(checkContainer);
+                        
+                        cell.appendChild(cellContent);
                         
                         row.appendChild(cell);
                         date++;
@@ -460,6 +544,31 @@
         function handleSaveHabit() {
             const newHabitName = habitNameInput.value.trim() || DEFAULT_HABIT_NAME;
             state.habitName = newHabitName;
+            saveDataToLocalStorage();
+        }
+        
+        // Handle daily goal change
+        function handleDailyGoalChange(event) {
+            const input = event.target;
+            const dateKey = input.dataset.date;
+            const goalText = input.value.trim();
+            
+            if (goalText) {
+                state.dailyGoals[dateKey] = goalText;
+            } else {
+                delete state.dailyGoals[dateKey];
+            }
+            
+            saveDataToLocalStorage();
+        }
+        
+        // Handle result change (できた/できなかった)
+        function handleResultChange(event) {
+            const radio = event.target;
+            const dateKey = radio.dataset.date;
+            const result = radio.value;
+            
+            state.dailyResults[dateKey] = result;
             saveDataToLocalStorage();
         }
         
