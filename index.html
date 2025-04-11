@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ミニ習慣トラッカー</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 0 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Header styles */
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #e1e4e8;
+            margin-bottom: 1.5rem;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            color: #2e3440;
+            margin-bottom: 0.5rem;
+        }
+        
+        .current-month {
+            font-size: 1.2rem;
+            color: #4c566a;
+            font-weight: 500;
+        }
+        
+        /* Habit form styles */
+        .habit-form {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+        
+        .habit-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2e3440;
+        }
+        
+        .habit-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d8dee9;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .habit-form input:focus {
+            outline: none;
+            border-color: #5e81ac;
+            box-shadow: 0 0 0 3px rgba(94, 129, 172, 0.2);
+        }
+        
+        .habit-form button {
+            background-color: #5e81ac;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .habit-form button:hover {
+            background-color: #4c6a8f;
+        }
+        
+        /* Calendar styles */
+        .calendar {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background-color: #5e81ac;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+            padding: 0.75rem;
+        }
+        
+        td {
+            border: 1px solid #e1e4e8;
+            text-align: center;
+            vertical-align: middle;
+            padding: 0.5rem;
+            position: relative;
+            height: 70px;
+        }
+        
+        td.today {
+            background-color: rgba(94, 129, 172, 0.1);
+        }
+        
+        td.empty {
+            background-color: #f8f9fb;
+        }
+        
+        .date-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.8rem;
+            color: #4c566a;
+        }
+        
+        .check-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+        }
+        
+        /* Footer styles */
+        .stats {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #4c566a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2e3440;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .current-month {
+                font-size: 1rem;
+            }
+            
+            th, td {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            td {
+                height: 60px;
+            }
+            
+            .habit-form input, .habit-form button {
+                font-size: 0.9rem;
+            }
+            
+            .stat-item {
+                min-width: 100%;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ミニ習慣トラッカー</h1>
+        <div class="current-month" id="current-month"></div>
+    </header>
+    
+    <main>
+        <section class="habit-form">
+            <label for="habit-name">習慣の名前</label>
+            <input type="text" id="habit-name" placeholder="例：毎日の運動、読書、瞑想など">
+            <button id="save-habit">保存</button>
+        </section>
+        
+        <section class="calendar">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日</th>
+                        <th>月</th>
+                        <th>火</th>
+                        <th>水</th>
+                        <th>木</th>
+                        <th>金</th>
+                        <th>土</th>
+                    </tr>
+                </thead>
+                <tbody id="calendar-body">
+                    <!-- Calendar will be generated with JavaScript -->
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="stats">
+            <div class="stat-item">
+                <div class="stat-label">現在の継続日数</div>
+                <div class="stat-value" id="current-streak">0日</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">今月の達成率</div>
+                <div class="stat-value" id="monthly-rate">0%</div>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        // Constants
+        const DEFAULT_HABIT_NAME = "マイ習慣";
+        const LOCAL_STORAGE_KEY = "mini-habit-tracker";
+        
+        // DOM Elements
+        const currentMonthEl = document.getElementById("current-month");
+        const habitNameInput = document.getElementById("habit-name");
+        const saveHabitBtn = document.getElementById("save-habit");
+        const calendarBody = document.getElementById("calendar-body");
+        const currentStreakEl = document.getElementById("current-streak");
+        const monthlyRateEl = document.getElementById("monthly-rate");
+        
+        // State
+        let state = {
+            habitName: DEFAULT_HABIT_NAME,
+            completedDates: {},
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear()
+        };
+        
+        // Initialize the application
+        function init() {
+            loadDataFromLocalStorage();
+            renderCurrentMonth();
+            renderCalendar();
+            updateStats();
+            attachEventListeners();
+        }
+        
+        // Load data from localStorage
+        function loadDataFromLocalStorage() {
+            try {
+                const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (storedData) {
+                    const parsedData = JSON.parse(storedData);
+                    state = {
+                        ...state,
+                        habitName: parsedData.habitName || DEFAULT_HABIT_NAME,
+                        completedDates: parsedData.completedDates || {}
+                    };
+                    habitNameInput.value = state.habitName;
+                }
+            } catch (error) {
+                console.error("Failed to load data from localStorage:", error);
+                showError("データの読み込みに失敗しました。");
+            }
+        }
+        
+        // Save data to localStorage
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+                    habitName: state.habitName,
+                    completedDates: state.completedDates
+                }));
+            } catch (error) {
+                console.error("Failed to save data to localStorage:", error);
+                showError("データの保存に失敗しました。");
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            alert(`エラー: ${message}\nもう一度お試しいただくか、ブラウザの設定を確認してください。`);
+        }
+        
+        // Render current month and year
+        function renderCurrentMonth() {
+            const date = new Date(state.currentYear, state.currentMonth, 1);
+            const options = { year: 'numeric', month: 'long' };
+            currentMonthEl.textContent = date.toLocaleDateString('ja-JP', options);
+        }
+        
+        // Generate and render calendar
+        function renderCalendar() {
+            calendarBody.innerHTML = '';
+            
+            // Get the first day of the month
+            const firstDay = new Date(state.currentYear, state.currentMonth, 1);
+            
+            // Get the last day of the month
+            const lastDay = new Date(state.currentYear, state.currentMonth + 1, 0);
+            
+            // Get current date for highlighting today
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === state.currentMonth && 
+                                   today.getFullYear() === state.currentYear;
+            
+            // Create calendar rows and cells
+            let date = 1;
+            const daysInMonth = lastDay.getDate();
+            
+            // Calculate how many weeks we need
+            const weeksNeeded = Math.ceil((firstDay.getDay() + daysInMonth) / 7);
+            
+            for (let i = 0; i < weeksNeeded; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    
+                    if ((i === 0 && j < firstDay.getDay()) || date > daysInMonth) {
+                        cell.classList.add('empty');
+                        row.appendChild(cell);
+                    } else {
+                        // Add date number
+                        const dateNumber = document.createElement('div');
+                        dateNumber.classList.add('date-number');
+                        dateNumber.textContent = date;
+                        cell.appendChild(dateNumber);
+                        
+                        // Create checkbox container
+                        const checkContainer = document.createElement('div');
+                        checkContainer.classList.add('check-container');
+                        
+                        // Create checkbox
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.dataset.date = `${state.currentYear}-${state.currentMonth + 1}-${date}`;
+                        
+                        // Check if this date is completed
+                        const dateKey = `${state.currentYear}-${state.currentMonth + 1}-${date}`;
+                        if (state.completedDates[dateKey]) {
+                            checkbox.checked = true;
+                        }
+                        
+                        // Highlight today
+                        if (isCurrentMonth && date === today.getDate()) {
+                            cell.classList.add('today');
+                        }
+                        
+                        // Add event listener to checkbox
+                        checkbox.addEventListener('change', handleCheckboxChange);
+                        
+                        checkContainer.appendChild(checkbox);
+                        cell.appendChild(checkContainer);
+                        
+                        row.appendChild(cell);
+                        date++;
+                    }
+                }
+                
+                calendarBody.appendChild(row);
+            }
+        }
+        
+        // Handle checkbox change event
+        function handleCheckboxChange(event) {
+            const checkbox = event.target;
+            const dateKey = checkbox.dataset.date;
+            
+            if (checkbox.checked) {
+                state.completedDates[dateKey] = true;
+            } else {
+                delete state.completedDates[dateKey];
+            }
+            
+            saveDataToLocalStorage();
+            updateStats();
+        }
+        
+        // Handle save habit button click
+        function handleSaveHabit() {
+            const newHabitName = habitNameInput.value.trim() || DEFAULT_HABIT_NAME;
+            state.habitName = newHabitName;
+            saveDataToLocalStorage();
+        }
+        
+        // Attach event listeners
+        function attachEventListeners() {
+            saveHabitBtn.addEventListener('click', handleSaveHabit);
+        }
+        
+        // Calculate current streak
+        function calculateCurrentStreak() {
+            let streak = 0;
+            const today = new Date();
+            
+            // Start from today and go backwards
+            for (let i = 0; i <= 1000; i++) { // Limit to 1000 days to prevent infinite loop
+                const checkDate = new Date();
+                checkDate.setDate(today.getDate() - i);
+                
+                const dateKey = `${checkDate.getFullYear()}-${checkDate.getMonth() + 1}-${checkDate.getDate()}`;
+                
+                // If today is not yet completed, don't count it in the streak
+                if (i === 0 && !state.completedDates[dateKey]) {
+                    continue;
+                }
+                
+                if (state.completedDates[dateKey]) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+        
+        // Calculate monthly completion rate
+        function calculateMonthlyRate() {
+            const today = new Date();
+            const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
+            let completedDaysCount = 0;
+            
+            // Only count up to current day in current month
+            const daysToCount = (state.currentMonth === today.getMonth() && 
+                                state.currentYear === today.getFullYear()) 
+                                ? today.getDate() 
+                                : daysInMonth;
+            
+            for (let day = 1; day <= daysToCount; day++) {
+                const dateKey = `${state.currentYear}-${state.currentMonth + 1}-${day}`;
+                if (state.completedDates[dateKey]) {
+                    completedDaysCount++;
+                }
+            }
+            
+            return daysToCount > 0 ? Math.round((completedDaysCount / daysToCount) * 100) : 0;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const streak = calculateCurrentStreak();
+            const monthlyRate = calculateMonthlyRate();
+            
+            currentStreakEl.textContent = `${streak}日`;
+            monthlyRateEl.textContent = `${monthlyRate}%`;
+        }
+        
+        // Check and update month if needed (for when the app runs across month boundaries)
+        function checkAndUpdateMonth() {
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            if (state.currentMonth !== currentMonth || state.currentYear !== currentYear) {
+                state.currentMonth = currentMonth;
+                state.currentYear = currentYear;
+                renderCurrentMonth();
+                renderCalendar();
+                updateStats();
+            }
+        }
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            
+            // Check for month change every hour
+            setInterval(checkAndUpdateMonth, 60 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>
